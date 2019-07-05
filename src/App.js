@@ -3,7 +3,7 @@ import React from 'react';
 function App() {
 	return (
 		<div className="App">
-			<h1>midi-shredder</h1>
+			<h1>midi-shredder WIP</h1>
 		</div>
 	);
 }
