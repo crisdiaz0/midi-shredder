@@ -3,13 +3,21 @@ import { parseArrayBuffer } from 'midi-json-parser';
 
 const getFile = e => {
 	const file = e.target.files[0];
-	console.log('file: ', file);
 
 	if (file.type !== 'audio/midi') return;
 
 	const fileReader = new FileReader();
 	fileReader.readAsArrayBuffer(file);
-	console.log('fileReader: ', fileReader);
+
+	fileReader.onload = function() {
+		processFile(fileReader.result);
+	};
+};
+
+const processFile = fileArrayBuffer => {
+	parseArrayBuffer(fileArrayBuffer).then(json => {
+		console.log(json);
+	});
 };
 
 function App() {
