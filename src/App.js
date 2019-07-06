@@ -1,42 +1,58 @@
 import React from 'react';
 const MidiPlayer = require('midi-player-js');
+const Soundfont = require('soundfont-player');
 
-const getFile = e => {
-	const file = e.target.files[0];
+class App extends React.Component {
+	constructor(props) {
+		super(props);
+		this.state = {
+			currentEvent: {}
+		};
+	}
 
-	if (file.type !== 'audio/midi') return;
+	getFile = e => {
+		const file = e.target.files[0];
 
-	const fileReader = new FileReader();
-	fileReader.readAsArrayBuffer(file);
+		if (file.type !== 'audio/midi') return;
 
-	fileReader.onload = () => {
-		processFile(fileReader.result);
+		const fileReader = new FileReader();
+		fileReader.readAsArrayBuffer(file);
+
+		fileReader.onload = () => {
+			this.processFile(fileReader.result);
+		};
 	};
-};
 
-const processFile = fileArrayBuffer => {
-	// only console logging the events for now
-	const Player = new MidiPlayer.Player(e => {
-		console.log(e);
-	});
+	processFile = fileArrayBuffer => {
+		Soundfont.instrument(new AudioContext(), 'electric_guitar_muted').then(
+			instrument => {
+				const Player = new MidiPlayer.Player(e => {
+					this.setState({ currentEvent: e });
+					instrument.play(e.noteNumber);
+				});
 
-	Player.loadArrayBuffer(fileArrayBuffer);
-	Player.dryRun();
-	Player.play();
-};
+				Player.loadArrayBuffer(fileArrayBuffer);
+				Player.fileLoaded();
+				Player.play();
+			}
+		);
+	};
 
-function App() {
-	return (
-		<div className="App">
-			<h1>midi-shredder</h1>
-			<input
-				type="file"
-				id="files"
-				name="files"
-				onInput={e => getFile(e)}
-			/>
-		</div>
-	);
+	render() {
+		return (
+			<div className="App">
+				<h1>midi-shredder</h1>
+				<input
+					type="file"
+					id="files"
+					name="files"
+					onInput={e => this.getFile(e)}
+				/>
+
+				<h2>{this.state.currentEvent.noteName}</h2>
+			</div>
+		);
+	}
 }
 
 export default App;
