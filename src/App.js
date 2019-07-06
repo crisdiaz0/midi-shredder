@@ -1,5 +1,5 @@
 import React from 'react';
-import { parseArrayBuffer } from 'midi-json-parser';
+const MidiPlayer = require('midi-player-js');
 
 const getFile = e => {
 	const file = e.target.files[0];
@@ -9,15 +9,20 @@ const getFile = e => {
 	const fileReader = new FileReader();
 	fileReader.readAsArrayBuffer(file);
 
-	fileReader.onload = function() {
+	fileReader.onload = () => {
 		processFile(fileReader.result);
 	};
 };
 
 const processFile = fileArrayBuffer => {
-	parseArrayBuffer(fileArrayBuffer).then(json => {
-		console.log(json);
+	// only console logging the events for now
+	const Player = new MidiPlayer.Player(e => {
+		console.log(e);
 	});
+
+	Player.loadArrayBuffer(fileArrayBuffer);
+	Player.dryRun();
+	Player.play();
 };
 
 function App() {
