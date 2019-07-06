@@ -2,11 +2,22 @@ import React from 'react';
 const MidiPlayer = require('midi-player-js');
 const Soundfont = require('soundfont-player');
 
+const ac = new AudioContext({
+	latencyHint: 'playback',
+	sampleRate: 48000
+});
+
+const Player = new MidiPlayer.Player();
+
 class App extends React.Component {
 	constructor(props) {
 		super(props);
 		this.state = {
-			currentEvent: {}
+			audioContext: ac,
+			instrument: '',
+			Player: Player,
+			currentEvent: {},
+			notes: []
 		};
 	}
 
@@ -23,19 +34,41 @@ class App extends React.Component {
 		};
 	};
 
-	processFile = fileArrayBuffer => {
-		Soundfont.instrument(new AudioContext(), 'electric_guitar_muted').then(
-			instrument => {
-				const Player = new MidiPlayer.Player(e => {
-					this.setState({ currentEvent: e });
-					instrument.play(e.noteNumber);
-				});
-
-				Player.loadArrayBuffer(fileArrayBuffer);
-				Player.fileLoaded();
-				Player.play();
-			}
+	processFile = async fileArrayBuffer => {
+		const instrument = await Soundfont.instrument(
+			ac,
+			'acoustic_grand_piano'
 		);
+		this.setState({ instrument: instrument });
+
+		const { Player } = this.state;
+
+		Player.loadArrayBuffer(fileArrayBuffer);
+		Player.fileLoaded();
+		Player.on('midiEvent', event => this.playSound(event));
+		Player.play();
+	};
+
+	playSound = event => {
+		if (!event.noteNumber) return;
+
+		this.setState({ currentEvent: event });
+
+		console.log(event.noteNumber);
+		this.state.instrument.play(event.noteNumber);
+	};
+
+	noteNumberToKeyboardKey = () => {
+		// Midi noteNumber is an 7 bit field (0 - 127)
+		// Keyboard Keys:
+		// A - 65
+		// S - 83
+		// D - 68
+		// F - 70
+		// J - 74
+		// K - 75
+		// L - 76
+		// ; - 59
 	};
 
 	render() {
