@@ -17,7 +17,8 @@ class App extends React.Component {
 			instrument: '',
 			Player: Player,
 			currentEvent: {},
-			notes: []
+			notes: [],
+			tracks: []
 		};
 	}
 
@@ -46,7 +47,24 @@ class App extends React.Component {
 		Player.loadArrayBuffer(fileArrayBuffer);
 		Player.fileLoaded();
 		Player.on('midiEvent', event => this.playSound(event));
-		Player.play();
+		this.processAllNotes();
+		this.createTracks();
+		// Player.play();
+	};
+
+	processAllNotes = () => {
+		const { Player } = this.state;
+		const allEvents = Player.getEvents()[0];
+		const notes = [];
+
+		allEvents.forEach(eventObj => {
+			if (!eventObj.noteNumber) return;
+			else notes.push({ noteNumber: eventObj.noteNumber });
+		});
+
+		this.setState({
+			notes: notes
+		});
 	};
 
 	playSound = event => {
@@ -54,8 +72,39 @@ class App extends React.Component {
 
 		this.setState({ currentEvent: event });
 
-		console.log(event.noteNumber);
 		this.state.instrument.play(event.noteNumber);
+	};
+
+	createTracks = () => {
+		const { notes } = this.state;
+
+		const min = notes.reduce(
+			(min, noteObj) =>
+				noteObj.noteNumber < min ? noteObj.noteNumber : min,
+			128
+		);
+
+		const max = notes.reduce(
+			(max, noteObj) =>
+				noteObj.noteNumber > max ? noteObj.noteNumber : max,
+			0
+		);
+		console.log('max: ', max);
+		console.log('min: ', min);
+
+		const noteRange = max - min;
+		console.log('noteRange: ', noteRange);
+
+		const tracks = {
+			0: [],
+			1: [],
+			2: [],
+			3: [],
+			4: [],
+			5: [],
+			6: [],
+			7: []
+		};
 	};
 
 	noteNumberToKeyboardKey = () => {
@@ -69,6 +118,9 @@ class App extends React.Component {
 		// K - 75
 		// L - 76
 		// ; - 59
+		// { hasNote: 1, noteNumber: 20 }
+		// { hasNote: 0 }
+		const numToKey = {};
 	};
 
 	render() {
