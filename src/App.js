@@ -17,8 +17,9 @@ class App extends React.Component {
 			instrument: '',
 			Player: Player,
 			currentEvent: {},
-			notes: [],
-			tracks: []
+			tracks: [],
+			lowestNote: 0,
+			highestNote: 0
 		};
 	}
 
@@ -55,15 +56,22 @@ class App extends React.Component {
 	processAllNotes = () => {
 		const { Player } = this.state;
 		const allEvents = Player.getEvents()[0];
-		const notes = [];
 
-		allEvents.forEach(eventObj => {
-			if (!eventObj.noteNumber) return;
-			else notes.push({ noteNumber: eventObj.noteNumber });
-		});
+		const min = allEvents.reduce(
+			(min, noteObj) =>
+				noteObj.noteNumber < min ? noteObj.noteNumber : min,
+			128
+		);
+
+		const max = allEvents.reduce(
+			(max, noteObj) =>
+				noteObj.noteNumber > max ? noteObj.noteNumber : max,
+			0
+		);
 
 		this.setState({
-			notes: notes
+			lowestNote: min,
+			highestNote: max
 		});
 	};
 
@@ -76,25 +84,6 @@ class App extends React.Component {
 	};
 
 	createTracks = () => {
-		const { notes } = this.state;
-
-		const min = notes.reduce(
-			(min, noteObj) =>
-				noteObj.noteNumber < min ? noteObj.noteNumber : min,
-			128
-		);
-
-		const max = notes.reduce(
-			(max, noteObj) =>
-				noteObj.noteNumber > max ? noteObj.noteNumber : max,
-			0
-		);
-		console.log('max: ', max);
-		console.log('min: ', min);
-
-		const noteRange = max - min;
-		console.log('noteRange: ', noteRange);
-
 		const tracks = {
 			0: [],
 			1: [],
@@ -105,6 +94,11 @@ class App extends React.Component {
 			6: [],
 			7: []
 		};
+
+		const totalRange = this.state.highestNote - this.state.lowestNote;
+		console.log('totalRange: ', totalRange);
+		const trackRange = Math.ceil(totalRange / 8);
+		console.log('trackRange: ', trackRange);
 	};
 
 	noteNumberToKeyboardKey = () => {
