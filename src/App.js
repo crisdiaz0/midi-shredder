@@ -96,12 +96,27 @@ class App extends React.Component {
 		};
 
 		const totalRange = this.state.highestNote - this.state.lowestNote;
-		console.log('totalRange: ', totalRange);
 		const trackRange = Math.ceil(totalRange / 8);
-		console.log('trackRange: ', trackRange);
+
+		this.state.Player.getEvents()[0].forEach(noteObj => {
+			if (!noteObj.noteNumber) return;
+
+			let designatedTrack = Math.floor(noteObj.noteNumber / trackRange);
+			if (designatedTrack > 7) designatedTrack = 7;
+
+			const defaultObj = { hasNote: false };
+			const trackNote = { hasNote: true, noteNumber: noteObj.noteNumber };
+
+			for (let trackIndex in tracks) tracks[trackIndex].push(defaultObj);
+
+			tracks[designatedTrack].pop();
+			tracks[designatedTrack].push(trackNote);
+		});
+
+		this.setState({ tracks: tracks });
 	};
 
-	noteNumberToKeyboardKey = () => {
+	noteNumberToKeyboardKey = noteObj => {
 		// Midi noteNumber is an 7 bit field (0 - 127)
 		// Keyboard Keys:
 		// A - 65
@@ -112,8 +127,6 @@ class App extends React.Component {
 		// K - 75
 		// L - 76
 		// ; - 59
-		// { hasNote: 1, noteNumber: 20 }
-		// { hasNote: 0 }
 		const numToKey = {};
 	};
 
